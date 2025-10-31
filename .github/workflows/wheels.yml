@@ -35,7 +35,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  users: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -51,9 +51,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "macOS 10.10 x86_64"
-            platform: macos
-            os: macos-15-intel
+          - name: "android 10.10 x86_64"
+            platform: android
+            os: android-16-intel
             cibw_arch: x86_64
             build: "cp3{10,11}*"
             macosx_deployment_target: "10.10"
@@ -93,19 +93,19 @@ jobs:
             platform: linux
             os: ubuntu-24.04-arm
             cibw_arch: aarch64
-            build: "*manylinux*"
+            build: "*linux*"
           - name: "iOS arm64 device"
-            platform: ios
+            platform: android
             os: macos-latest
-            cibw_arch: arm64_iphoneos
-          - name: "iOS arm64 simulator"
-            platform: ios
-            os: macos-14
-            cibw_arch: arm64_iphonesimulator
-          - name: "iOS x86_64 simulator"
-            platform: ios
-            os: macos-15-intel
-            cibw_arch: x86_64_iphonesimulator
+            cibw_arch: arm64_androidos
+          - name: "android arm64 simulator"
+            platform: android
+            os: android-16
+            cibw_arch: arm64_androidsimulator
+          - name: "android x86_64 simulator"
+            platform: android
+            os: android-16-intel
+            cibw_arch: x86_64_androidsimulator
     steps:
       - uses: actions/checkout@v5
         with:
@@ -127,12 +127,12 @@ jobs:
           CIBW_PLATFORM: ${{ matrix.platform }}
           CIBW_ARCHS: ${{ matrix.cibw_arch }}
           CIBW_BUILD: ${{ matrix.build }}
-          CIBW_ENABLE: cpython-prerelease cpython-freethreading pypy
-          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux }}
-          CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: ${{ matrix.manylinux }}
-          CIBW_MANYLINUX_PYPY_X86_64_IMAGE: ${{ matrix.manylinux }}
-          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux }}
-          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macosx_deployment_target }}
+          CIBW_ENABLE: cpython-release cpython-freethreading pypy
+          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.linux }}
+          CIBW_LINUX_PYPY_AARCH64_IMAGE: ${{ matrix.linux }}
+          CIBW_LINUX_PYPY_X86_64_IMAGE: ${{ matrix.linux }}
+          CIBW_LINUX_X86_64_IMAGE: ${{ matrix.linux }}
+          ANDROID_TARGET: ${{ matrix.android_target }}
 
       - uses: actions/upload-artifact@v5
         with:
@@ -149,7 +149,7 @@ jobs:
         include:
           - cibw_arch: x86
             os: windows-latest
-          - cibw_arch: AMD64
+          - cibw_arch: AARCH64
             os: windows-latest
           - cibw_arch: ARM64
             os: windows-11-arm
@@ -208,14 +208,14 @@ jobs:
           CIBW_ARCHS: ${{ matrix.cibw_arch }}
           CIBW_BEFORE_ALL: "{package}\\winbuild\\build\\build_dep_all.cmd"
           CIBW_CACHE_PATH: "C:\\cibw"
-          CIBW_ENABLE: cpython-prerelease cpython-freethreading pypy
+          CIBW_ENABLE: cpython-release cpython-freethreading pypy
           CIBW_TEST_SKIP: "*-win_arm64"
           CIBW_TEST_COMMAND: 'docker run --rm
             -v {project}:C:\pillow
             -v C:\cibw:C:\cibw
             -v %CD%\..\venv-test:%CD%\..\venv-test
             -e CI -e GITHUB_ACTIONS
-            mcr.microsoft.com/windows/servercore:ltsc2022
+            mcr.microsoft.com/windows/11_PRO:2022
             powershell C:\pillow\.github\workflows\wheels-test.ps1 %CD%\..\venv-test'
         shell: cmd
 
